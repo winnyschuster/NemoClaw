@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """
-OpenShell Plugin Blueprint Runner
+NemoClaw Blueprint Runner
 
 Orchestrates OpenClaw sandbox lifecycle inside OpenShell.
 Called by the thin TS plugin via subprocess.
@@ -43,7 +43,7 @@ def emit_run_id() -> str:
 
 
 def load_blueprint() -> dict[str, Any]:
-    blueprint_path = Path(os.environ.get("OPENSHELL_PLUGIN_BLUEPRINT_PATH", "."))
+    blueprint_path = Path(os.environ.get("NEMOCLAW_BLUEPRINT_PATH", "."))
     bp_file = blueprint_path / "blueprint.yaml"
     if not bp_file.exists():
         log(f"ERROR: blueprint.yaml not found at {bp_file}")
@@ -215,7 +215,7 @@ def action_apply(
 
     # Step 4: Save run state
     progress(85, "Saving run state")
-    state_dir = Path.home() / ".openshell-plugin" / "state" / "runs" / rid
+    state_dir = Path.home() / ".nemoclaw" / "state" / "runs" / rid
     state_dir.mkdir(parents=True, exist_ok=True)
     (state_dir / "plan.json").write_text(
         json.dumps(
@@ -238,7 +238,7 @@ def action_apply(
 def action_status(rid: str | None = None) -> None:
     """Report current state of the most recent (or specified) run."""
     emit_run_id()
-    state_dir = Path.home() / ".openshell-plugin" / "state" / "runs"
+    state_dir = Path.home() / ".nemoclaw" / "state" / "runs"
 
     if rid:
         run_dir = state_dir / rid
@@ -263,7 +263,7 @@ def action_rollback(rid: str) -> None:
     """Rollback a specific run: stop sandbox, remove provider config."""
     emit_run_id()
 
-    state_dir = Path.home() / ".openshell-plugin" / "state" / "runs" / rid
+    state_dir = Path.home() / ".nemoclaw" / "state" / "runs" / rid
     if not state_dir.exists():
         log(f"ERROR: Run {rid} not found.")
         sys.exit(1)
@@ -299,7 +299,7 @@ def action_rollback(rid: str) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="OpenShell Plugin Blueprint Runner")
+    parser = argparse.ArgumentParser(description="NemoClaw Blueprint Runner")
     parser.add_argument("action", choices=["plan", "apply", "status", "rollback"])
     parser.add_argument("--profile", default="default")
     parser.add_argument("--plan", dest="plan_path")

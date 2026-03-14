@@ -34,6 +34,6 @@ export async function cliConnect(opts: ConnectOptions): Promise<void> {
 
   if (exitCode !== 0 && exitCode !== null) {
     logger.error(`Sandbox '${sandboxName}' exited with code ${String(exitCode)}.`);
-    logger.info("Run 'openclaw openshell status' to check available sandboxes.");
+    logger.info("Run 'openclaw nemoclaw status' to check available sandboxes.");
   }
 }

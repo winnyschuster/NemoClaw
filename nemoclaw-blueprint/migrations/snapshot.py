@@ -21,8 +21,8 @@ from typing import Any
 
 HOME = Path.home()
 OPENCLAW_DIR = HOME / ".openclaw"
-OPENSHELL_PLUGIN_DIR = HOME / ".openshell-plugin"
-SNAPSHOTS_DIR = OPENSHELL_PLUGIN_DIR / "snapshots"
+NEMOCLAW_DIR = HOME / ".nemoclaw"
+SNAPSHOTS_DIR = NEMOCLAW_DIR / "snapshots"
 
 
 def create_snapshot() -> Path | None:
@@ -73,7 +73,7 @@ def cutover_host(snapshot_dir: Path) -> bool:
         return True  # Nothing to archive
 
     timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-    archive_path = OPENCLAW_DIR.parent / f".openclaw.pre-openshell-plugin.{timestamp}"
+    archive_path = OPENCLAW_DIR.parent / f".openclaw.pre-nemoclaw.{timestamp}"
 
     try:
         shutil.move(str(OPENCLAW_DIR), str(archive_path))
@@ -92,7 +92,7 @@ def rollback_from_snapshot(snapshot_dir: Path) -> bool:
     # Archive current config if it exists
     if OPENCLAW_DIR.exists():
         timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-        archive_path = OPENCLAW_DIR.parent / f".openclaw.openshell-plugin-archived.{timestamp}"
+        archive_path = OPENCLAW_DIR.parent / f".openclaw.nemoclaw-archived.{timestamp}"
         shutil.move(str(OPENCLAW_DIR), str(archive_path))
 
     shutil.copytree(source, OPENCLAW_DIR)

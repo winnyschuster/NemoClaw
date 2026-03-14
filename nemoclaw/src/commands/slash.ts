@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * Handler for the /openshell slash command (chat interface).
+ * Handler for the /nemoclaw slash command (chat interface).
  *
  * Supports subcommands:
- *   /openshell status   - show sandbox/blueprint/inference state
- *   /openshell eject    - rollback to host installation
- *   /openshell          - show help
+ *   /nemoclaw status   - show sandbox/blueprint/inference state
+ *   /nemoclaw eject    - rollback to host installation
+ *   /nemoclaw          - show help
  */
 
 import type { PluginCommandContext, PluginCommandResult, OpenClawPluginApi } from "../index.js";
@@ -32,20 +32,20 @@ export function handleSlashCommand(
 function slashHelp(): PluginCommandResult {
   return {
     text: [
-      "**OpenShell Plugin**",
+      "**NemoClaw**",
       "",
-      "Usage: `/openshell <subcommand>`",
+      "Usage: `/nemoclaw <subcommand>`",
       "",
       "Subcommands:",
       "  `status` - Show sandbox, blueprint, and inference state",
       "  `eject`  - Show rollback instructions",
       "",
       "For full management use the CLI:",
-      "  `openclaw openshell status`",
-      "  `openclaw openshell migrate`",
-      "  `openclaw openshell launch`",
-      "  `openclaw openshell connect`",
-      "  `openclaw openshell eject --confirm`",
+      "  `openclaw nemoclaw status`",
+      "  `openclaw nemoclaw migrate`",
+      "  `openclaw nemoclaw launch`",
+      "  `openclaw nemoclaw connect`",
+      "  `openclaw nemoclaw eject --confirm`",
     ].join("\n"),
   };
 }
@@ -55,12 +55,12 @@ function slashStatus(): PluginCommandResult {
 
   if (!state.lastAction) {
     return {
-      text: "**OpenShell Plugin**: No operations performed yet. Run `openclaw openshell launch` or `openclaw openshell migrate` to get started.",
+      text: "**NemoClaw**: No operations performed yet. Run `openclaw nemoclaw launch` or `openclaw nemoclaw migrate` to get started.",
     };
   }
 
   const lines = [
-    "**OpenShell Plugin Status**",
+    "**NemoClaw Status**",
     "",
     `Last action: ${state.lastAction}`,
     `Blueprint: ${state.blueprintVersion ?? "unknown"}`,
@@ -80,7 +80,7 @@ function slashEject(): PluginCommandResult {
   const state = loadState();
 
   if (!state.lastAction) {
-    return { text: "No OpenShell deployment found. Nothing to eject from." };
+    return { text: "No NemoClaw deployment found. Nothing to eject from." };
   }
 
   if (!state.migrationSnapshot && !state.hostBackupPath) {
@@ -91,12 +91,12 @@ function slashEject(): PluginCommandResult {
 
   return {
     text: [
-      "**Eject from OpenShell**",
+      "**Eject from NemoClaw**",
       "",
       "To rollback to your host OpenClaw installation, run:",
       "",
       "```",
-      "openclaw openshell eject --confirm",
+      "openclaw nemoclaw eject --confirm",
       "```",
       "",
       `Snapshot: ${state.migrationSnapshot ?? state.hostBackupPath ?? "none"}`,

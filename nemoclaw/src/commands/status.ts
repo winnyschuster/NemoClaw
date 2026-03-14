@@ -3,7 +3,7 @@
 
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
-import type { PluginLogger, OpenShellPluginConfig } from "../index.js";
+import type { PluginLogger, NemoClawConfig } from "../index.js";
 import { loadState } from "../blueprint/state.js";
 
 const execAsync = promisify(exec);
@@ -11,7 +11,7 @@ const execAsync = promisify(exec);
 export interface StatusOptions {
   json: boolean;
   logger: PluginLogger;
-  pluginConfig: OpenShellPluginConfig;
+  pluginConfig: NemoClawConfig;
 }
 
 export async function cliStatus(opts: StatusOptions): Promise<void> {
@@ -25,7 +25,7 @@ export async function cliStatus(opts: StatusOptions): Promise<void> {
   ]);
 
   const statusData = {
-    openshellPlugin: {
+    nemoclaw: {
       lastAction: state.lastAction,
       lastRunId: state.lastRunId,
       blueprintVersion: state.blueprintVersion,
@@ -42,8 +42,8 @@ export async function cliStatus(opts: StatusOptions): Promise<void> {
     return;
   }
 
-  logger.info("OpenShell Plugin Status");
-  logger.info("======================");
+  logger.info("NemoClaw Status");
+  logger.info("===============");
   logger.info("");
 
   logger.info("Plugin State:");
@@ -80,7 +80,7 @@ export async function cliStatus(opts: StatusOptions): Promise<void> {
     logger.info("");
     logger.info("Rollback:");
     logger.info(`  Snapshot:  ${state.migrationSnapshot}`);
-    logger.info("  Run 'openclaw openshell eject' to restore host installation.");
+    logger.info("  Run 'openclaw nemoclaw eject' to restore host installation.");
   }
 }
 

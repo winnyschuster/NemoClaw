@@ -6,15 +6,15 @@ check: lint-ts lint-py
 lint: lint-ts lint-py
 
 lint-ts:
-	cd openshell-plugin && npm run check
+	cd nemoclaw && npm run check
 
 lint-py:
-	cd openshell-blueprint && $(MAKE) check
+	cd nemoclaw-blueprint && $(MAKE) check
 
 format: format-ts format-py
 
 format-ts:
-	cd openshell-plugin && npm run lint:fix && npm run format
+	cd nemoclaw && npm run lint:fix && npm run format
 
 format-py:
-	cd openshell-blueprint && $(MAKE) format
+	cd nemoclaw-blueprint && $(MAKE) format

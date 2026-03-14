@@ -3,7 +3,7 @@
 
 import { existsSync, cpSync, renameSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
-import type { PluginLogger, OpenShellPluginConfig } from "../index.js";
+import type { PluginLogger, NemoClawConfig } from "../index.js";
 import { execBlueprint } from "../blueprint/exec.js";
 import { loadState, clearState } from "../blueprint/state.js";
 
@@ -13,7 +13,7 @@ export interface EjectOptions {
   runId?: string;
   confirm: boolean;
   logger: PluginLogger;
-  pluginConfig: OpenShellPluginConfig;
+  pluginConfig: NemoClawConfig;
 }
 
 export async function cliEject(opts: EjectOptions): Promise<void> {
@@ -21,7 +21,7 @@ export async function cliEject(opts: EjectOptions): Promise<void> {
   const state = loadState();
 
   if (!state.lastAction) {
-    logger.error("No OpenShell Plugin deployment found. Nothing to eject from.");
+    logger.error("No NemoClaw deployment found. Nothing to eject from.");
     return;
   }
 
@@ -48,7 +48,7 @@ export async function cliEject(opts: EjectOptions): Promise<void> {
     logger.info("  1. Stop the OpenShell sandbox");
     logger.info("  2. Rollback blueprint state");
     logger.info(`  3. Restore ~/.openclaw from snapshot: ${snapshotPath}`);
-    logger.info("  4. Clear OpenShell Plugin state");
+    logger.info("  4. Clear NemoClaw state");
     logger.info("");
     logger.info("Run with --confirm to proceed, or cancel now.");
     return;
@@ -56,7 +56,7 @@ export async function cliEject(opts: EjectOptions): Promise<void> {
 
   // Step 1: Rollback blueprint
   if (state.lastRunId && state.blueprintVersion) {
-    const blueprintPath = join(HOME, ".openshell-plugin", "blueprints", state.blueprintVersion);
+    const blueprintPath = join(HOME, ".nemoclaw", "blueprints", state.blueprintVersion);
 
     if (existsSync(blueprintPath)) {
       const rollbackResult = await execBlueprint(
@@ -83,7 +83,7 @@ export async function cliEject(opts: EjectOptions): Promise<void> {
   try {
     // Archive current sandbox-managed config
     if (existsSync(currentConfigDir)) {
-      const archiveName = `${currentConfigDir}.openshell-plugin-archived-${String(Date.now())}`;
+      const archiveName = `${currentConfigDir}.nemoclaw-archived-${String(Date.now())}`;
       renameSync(currentConfigDir, archiveName);
       logger.info(`Archived current config to ${archiveName}`);
     }
@@ -99,7 +99,7 @@ export async function cliEject(opts: EjectOptions): Promise<void> {
     return;
   }
 
-  // Step 3: Clear OpenShell Plugin state
+  // Step 3: Clear NemoClaw state
   clearState();
 
   logger.info("");

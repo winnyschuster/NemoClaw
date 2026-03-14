@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 #
-# E2E test for OpenShell Plugin + blueprint
+# E2E test for NemoClaw + blueprint
 # Runs inside the Docker sandbox
 
 set -euo pipefail
@@ -24,9 +24,9 @@ openclaw --version && pass "OpenClaw CLI installed" || fail "OpenClaw CLI not fo
 # -------------------------------------------------------
 info "2. Verify plugin can be installed"
 # -------------------------------------------------------
-openclaw plugins install /opt/openshell-plugin 2>&1 && pass "Plugin installed" || {
+openclaw plugins install /opt/nemoclaw 2>&1 && pass "Plugin installed" || {
     # If plugins install isn't available, verify the built artifacts exist
-    if [ -f /opt/openshell-plugin/dist/index.js ]; then
+    if [ -f /opt/nemoclaw/dist/index.js ]; then
         pass "Plugin built successfully (dist/index.js exists)"
     else
         fail "Plugin build artifacts missing"
@@ -38,7 +38,7 @@ info "3. Verify blueprint YAML is valid"
 # -------------------------------------------------------
 python3 -c "
 import yaml, sys
-bp = yaml.safe_load(open('/opt/openshell-blueprint/blueprint.yaml'))
+bp = yaml.safe_load(open('/opt/nemoclaw-blueprint/blueprint.yaml'))
 assert bp['version'] == '0.1.0', f'Bad version: {bp[\"version\"]}'
 profiles = bp['components']['inference']['profiles']
 assert 'default' in profiles, 'Missing default profile'
@@ -50,7 +50,7 @@ print(f'Profiles: {list(profiles.keys())}')
 # -------------------------------------------------------
 info "4. Verify blueprint runner plan command"
 # -------------------------------------------------------
-cd /opt/openshell-blueprint
+cd /opt/nemoclaw-blueprint
 # Runner will fail at openshell prereq check (expected in test container)
 # We just verify it gets past validation and profile resolution
 python3 orchestrator/runner.py plan --profile ollama --dry-run 2>&1 | tee /tmp/plan-output.txt || true
@@ -69,7 +69,7 @@ info "6. Verify snapshot creation (migration pre-step)"
 # -------------------------------------------------------
 python3 -c "
 import sys
-sys.path.insert(0, '/opt/openshell-blueprint/migrations')
+sys.path.insert(0, '/opt/nemoclaw-blueprint/migrations')
 from snapshot import create_snapshot, list_snapshots
 
 snap = create_snapshot()
@@ -87,7 +87,7 @@ info "7. Verify snapshot restore (eject path)"
 # -------------------------------------------------------
 python3 -c "
 import sys, json, shutil
-sys.path.insert(0, '/opt/openshell-blueprint/migrations')
+sys.path.insert(0, '/opt/nemoclaw-blueprint/migrations')
 from snapshot import list_snapshots, rollback_from_snapshot
 from pathlib import Path
 
@@ -113,23 +113,23 @@ print(f'Restored config: {restored}')
 # -------------------------------------------------------
 info "8. Verify plugin TypeScript compilation"
 # -------------------------------------------------------
-[ -f /opt/openshell-plugin/dist/index.js ] && pass "index.js compiled" || fail "index.js missing"
-[ -f /opt/openshell-plugin/dist/commands/migrate.js ] && pass "migrate.js compiled" || fail "migrate.js missing"
-[ -f /opt/openshell-plugin/dist/commands/launch.js ] && pass "launch.js compiled" || fail "launch.js missing"
-[ -f /opt/openshell-plugin/dist/commands/connect.js ] && pass "connect.js compiled" || fail "connect.js missing"
-[ -f /opt/openshell-plugin/dist/commands/eject.js ] && pass "eject.js compiled" || fail "eject.js missing"
-[ -f /opt/openshell-plugin/dist/commands/status.js ] && pass "status.js compiled" || fail "status.js missing"
-[ -f /opt/openshell-plugin/dist/commands/logs.js ] && pass "logs.js compiled" || fail "logs.js missing"
-[ -f /opt/openshell-plugin/dist/blueprint/resolve.js ] && pass "resolve.js compiled" || fail "resolve.js missing"
-[ -f /opt/openshell-plugin/dist/blueprint/verify.js ] && pass "verify.js compiled" || fail "verify.js missing"
-[ -f /opt/openshell-plugin/dist/blueprint/exec.js ] && pass "exec.js compiled" || fail "exec.js missing"
-[ -f /opt/openshell-plugin/dist/blueprint/state.js ] && pass "state.js compiled" || fail "state.js missing"
+[ -f /opt/nemoclaw/dist/index.js ] && pass "index.js compiled" || fail "index.js missing"
+[ -f /opt/nemoclaw/dist/commands/migrate.js ] && pass "migrate.js compiled" || fail "migrate.js missing"
+[ -f /opt/nemoclaw/dist/commands/launch.js ] && pass "launch.js compiled" || fail "launch.js missing"
+[ -f /opt/nemoclaw/dist/commands/connect.js ] && pass "connect.js compiled" || fail "connect.js missing"
+[ -f /opt/nemoclaw/dist/commands/eject.js ] && pass "eject.js compiled" || fail "eject.js missing"
+[ -f /opt/nemoclaw/dist/commands/status.js ] && pass "status.js compiled" || fail "status.js missing"
+[ -f /opt/nemoclaw/dist/commands/logs.js ] && pass "logs.js compiled" || fail "logs.js missing"
+[ -f /opt/nemoclaw/dist/blueprint/resolve.js ] && pass "resolve.js compiled" || fail "resolve.js missing"
+[ -f /opt/nemoclaw/dist/blueprint/verify.js ] && pass "verify.js compiled" || fail "verify.js missing"
+[ -f /opt/nemoclaw/dist/blueprint/exec.js ] && pass "exec.js compiled" || fail "exec.js missing"
+[ -f /opt/nemoclaw/dist/blueprint/state.js ] && pass "state.js compiled" || fail "state.js missing"
 
 # -------------------------------------------------------
-info "9. Verify OpenShell Plugin state management"
+info "9. Verify NemoClaw state management"
 # -------------------------------------------------------
 node -e "
-const { loadState, saveState, clearState } = require('/opt/openshell-plugin/dist/blueprint/state.js');
+const { loadState, saveState, clearState } = require('/opt/nemoclaw/dist/blueprint/state.js');
 
 // Initial state should be empty
 let state = loadState();
@@ -148,7 +148,7 @@ state = loadState();
 console.assert(state.lastAction === null, 'Should be cleared');
 
 console.log('State management: create, save, load, clear all working');
-" && pass "OpenShell Plugin state management works" || fail "State management broken"
+" && pass "NemoClaw state management works" || fail "State management broken"
 
 echo ""
 echo -e "${GREEN}========================================${NC}"

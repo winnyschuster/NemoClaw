@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: Copyright (c) 2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import type { OpenShellPluginConfig } from "../index.js";
+import type { NemoClawConfig } from "../index.js";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -20,7 +20,7 @@ export interface ResolvedBlueprint {
   cached: boolean;
 }
 
-const CACHE_DIR = join(process.env.HOME ?? "/tmp", ".openshell-plugin", "blueprints");
+const CACHE_DIR = join(process.env.HOME ?? "/tmp", ".nemoclaw", "blueprints");
 
 export function getCacheDir(): string {
   return CACHE_DIR;
@@ -58,7 +58,7 @@ function parseManifestHeader(raw: string): BlueprintManifest {
   };
 }
 
-export async function resolveBlueprint(config: OpenShellPluginConfig): Promise<ResolvedBlueprint> {
+export async function resolveBlueprint(config: NemoClawConfig): Promise<ResolvedBlueprint> {
   const version = config.blueprintVersion;
 
   // Check local cache first

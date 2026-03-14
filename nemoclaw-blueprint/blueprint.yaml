@@ -12,7 +12,7 @@ profiles:
   - ollama
 
 description: |
-  OpenShell Plugin blueprint: orchestrates OpenClaw sandbox creation, migration,
+  NemoClaw blueprint: orchestrates OpenClaw sandbox creation, migration,
   and NIM/Ollama inference routing inside OpenShell.
 
 components:

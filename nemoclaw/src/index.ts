@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * OpenShell Plugin for OpenClaw
+ * NemoClaw — OpenClaw Plugin for OpenShell
  *
  * Uses the real OpenClaw plugin API. Types defined locally are minimal stubs
  * that match the OpenClaw SDK interfaces available at runtime via
@@ -135,21 +135,21 @@ export interface OpenClawPluginApi {
 // Plugin-specific config (read from pluginConfig in openclaw.plugin.json)
 // ---------------------------------------------------------------------------
 
-export interface OpenShellPluginConfig {
+export interface NemoClawConfig {
   blueprintVersion: string;
   blueprintRegistry: string;
   sandboxName: string;
   inferenceProvider: string;
 }
 
-const DEFAULT_PLUGIN_CONFIG: OpenShellPluginConfig = {
+const DEFAULT_PLUGIN_CONFIG: NemoClawConfig = {
   blueprintVersion: "latest",
-  blueprintRegistry: "ghcr.io/nvidia/openshell-blueprint",
+  blueprintRegistry: "ghcr.io/nvidia/nemoclaw-blueprint",
   sandboxName: "openclaw",
   inferenceProvider: "nvidia",
 };
 
-export function getPluginConfig(api: OpenClawPluginApi): OpenShellPluginConfig {
+export function getPluginConfig(api: OpenClawPluginApi): NemoClawConfig {
   const raw = api.pluginConfig ?? {};
   return {
     blueprintVersion:
@@ -176,20 +176,20 @@ export function getPluginConfig(api: OpenClawPluginApi): OpenShellPluginConfig {
 // ---------------------------------------------------------------------------
 
 export default function register(api: OpenClawPluginApi): void {
-  // 1. Register /openshell slash command (chat interface)
+  // 1. Register /nemoclaw slash command (chat interface)
   api.registerCommand({
-    name: "openshell",
-    description: "OpenShell sandbox management (status, eject).",
+    name: "nemoclaw",
+    description: "NemoClaw sandbox management (status, eject).",
     acceptsArgs: true,
     handler: (ctx) => handleSlashCommand(ctx, api),
   });
 
-  // 2. Register `openclaw openshell` CLI subcommands (commander.js)
+  // 2. Register `openclaw nemoclaw` CLI subcommands (commander.js)
   api.registerCli(
     (cliCtx) => {
       registerCliCommands(cliCtx, api);
     },
-    { commands: ["openshell"] },
+    { commands: ["nemoclaw"] },
   );
 
   // 3. Register nvidia-nim provider for build.nvidia.com models
@@ -231,5 +231,5 @@ export default function register(api: OpenClawPluginApi): void {
     ],
   });
 
-  api.logger.info("OpenShell plugin registered.");
+  api.logger.info("NemoClaw registered.");
 }

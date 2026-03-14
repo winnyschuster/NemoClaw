@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 /**
- * CLI registrar for `openclaw openshell <subcommand>`.
+ * CLI registrar for `openclaw nemoclaw <subcommand>`.
  *
  * Wires commander.js subcommands to the existing blueprint infrastructure.
  */
@@ -19,10 +19,10 @@ export function registerCliCommands(ctx: PluginCliContext, api: OpenClawPluginAp
   const { program, logger } = ctx;
   const pluginConfig = getPluginConfig(api);
 
-  const openshell = program.command("openshell").description("OpenShell sandbox management");
+  const nemoclaw = program.command("nemoclaw").description("NemoClaw sandbox management");
 
-  // openclaw openshell status
-  openshell
+  // openclaw nemoclaw status
+  nemoclaw
     .command("status")
     .description("Show sandbox, blueprint, and inference state")
     .option("--json", "Output as JSON", false)
@@ -30,8 +30,8 @@ export function registerCliCommands(ctx: PluginCliContext, api: OpenClawPluginAp
       await cliStatus({ json: opts.json, logger, pluginConfig });
     });
 
-  // openclaw openshell migrate
-  openshell
+  // openclaw nemoclaw migrate
+  nemoclaw
     .command("migrate")
     .description("Migrate host OpenClaw installation into an OpenShell sandbox")
     .option("--dry-run", "Show what would be migrated without making changes", false)
@@ -47,8 +47,8 @@ export function registerCliCommands(ctx: PluginCliContext, api: OpenClawPluginAp
       });
     });
 
-  // openclaw openshell launch
-  openshell
+  // openclaw nemoclaw launch
+  nemoclaw
     .command("launch")
     .description("Fresh setup: bootstrap OpenClaw inside OpenShell")
     .option("--force", "Skip ergonomics warning and force plugin-driven bootstrap", false)
@@ -62,8 +62,8 @@ export function registerCliCommands(ctx: PluginCliContext, api: OpenClawPluginAp
       });
     });
 
-  // openclaw openshell connect
-  openshell
+  // openclaw nemoclaw connect
+  nemoclaw
     .command("connect")
     .description("Open an interactive shell inside the OpenClaw sandbox")
     .option("--sandbox <name>", "Sandbox name to connect to", pluginConfig.sandboxName)
@@ -71,8 +71,8 @@ export function registerCliCommands(ctx: PluginCliContext, api: OpenClawPluginAp
       await cliConnect({ sandbox: opts.sandbox, logger });
     });
 
-  // openclaw openshell eject
-  openshell
+  // openclaw nemoclaw eject
+  nemoclaw
     .command("eject")
     .description("Rollback from OpenShell and restore host installation")
     .option("--run-id <id>", "Specific blueprint run ID to rollback from")

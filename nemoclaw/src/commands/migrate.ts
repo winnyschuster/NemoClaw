@@ -3,7 +3,7 @@
 
 import { existsSync, mkdirSync, cpSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import type { PluginLogger, OpenShellPluginConfig } from "../index.js";
+import type { PluginLogger, NemoClawConfig } from "../index.js";
 import { resolveBlueprint } from "../blueprint/resolve.js";
 import { verifyBlueprintDigest } from "../blueprint/verify.js";
 import { execBlueprint } from "../blueprint/exec.js";
@@ -64,13 +64,13 @@ export interface MigrateOptions {
   profile: string;
   skipBackup: boolean;
   logger: PluginLogger;
-  pluginConfig: OpenShellPluginConfig;
+  pluginConfig: NemoClawConfig;
 }
 
 export async function cliMigrate(opts: MigrateOptions): Promise<void> {
   const { dryRun, profile, skipBackup, logger, pluginConfig } = opts;
 
-  logger.info("OpenShell Plugin migrate: moving host OpenClaw into OpenShell sandbox");
+  logger.info("NemoClaw migrate: moving host OpenClaw into OpenShell sandbox");
 
   // Step 1: Detect host OpenClaw state
   logger.info("Detecting host OpenClaw installation...");
@@ -78,7 +78,7 @@ export async function cliMigrate(opts: MigrateOptions): Promise<void> {
 
   if (!hostState.exists) {
     logger.error("No OpenClaw installation found at ~/.openclaw");
-    logger.info("Use 'openclaw openshell launch' for a fresh install.");
+    logger.info("Use 'openclaw nemoclaw launch' for a fresh install.");
     return;
   }
 
@@ -178,19 +178,19 @@ export async function cliMigrate(opts: MigrateOptions): Promise<void> {
   logger.info(`Sandbox: ${pluginConfig.sandboxName}`);
   logger.info("");
   logger.info("Next steps:");
-  logger.info("  openclaw openshell connect    # Enter the sandbox");
-  logger.info("  openclaw openshell status     # Verify everything is healthy");
+  logger.info("  openclaw nemoclaw connect    # Enter the sandbox");
+  logger.info("  openclaw nemoclaw status     # Verify everything is healthy");
   logger.info("  openshell term               # Monitor sandbox activity");
   logger.info("");
   logger.info("To rollback to your host installation:");
-  logger.info("  openclaw openshell eject");
+  logger.info("  openclaw nemoclaw eject");
 }
 
 function createSnapshot(hostState: HostOpenClawState, logger: PluginLogger): string | null {
   if (!hostState.configDir) return null;
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-  const snapshotDir = join(HOME, ".openshell-plugin", "snapshots", timestamp);
+  const snapshotDir = join(HOME, ".nemoclaw", "snapshots", timestamp);
 
   try {
     mkdirSync(snapshotDir, { recursive: true });

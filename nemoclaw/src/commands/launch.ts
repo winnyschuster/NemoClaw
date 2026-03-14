@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { execSync } from "node:child_process";
-import type { PluginLogger, OpenShellPluginConfig } from "../index.js";
+import type { PluginLogger, NemoClawConfig } from "../index.js";
 import { resolveBlueprint } from "../blueprint/resolve.js";
 import { verifyBlueprintDigest, checkCompatibility } from "../blueprint/verify.js";
 import { execBlueprint } from "../blueprint/exec.js";
@@ -13,13 +13,13 @@ export interface LaunchOptions {
   force: boolean;
   profile: string;
   logger: PluginLogger;
-  pluginConfig: OpenShellPluginConfig;
+  pluginConfig: NemoClawConfig;
 }
 
 export async function cliLaunch(opts: LaunchOptions): Promise<void> {
   const { force, profile, logger, pluginConfig } = opts;
 
-  logger.info("OpenShell Plugin launch: setting up OpenClaw inside OpenShell");
+  logger.info("NemoClaw launch: setting up OpenClaw inside OpenShell");
 
   // Check if there's an existing host OpenClaw installation
   const hostState = detectHostOpenClaw();
@@ -37,13 +37,13 @@ export async function cliLaunch(opts: LaunchOptions): Promise<void> {
       "This avoids installing OpenClaw on the host only to redeploy it inside OpenShell.",
     );
     logger.info("");
-    logger.info("To proceed with plugin-driven bootstrap anyway, use --force.");
+    logger.info("To proceed with NemoClaw-driven bootstrap anyway, use --force.");
     return;
   }
 
   if (hostState.exists && !force) {
     logger.info(
-      "Existing OpenClaw installation detected. Consider using 'openclaw openshell migrate' instead.",
+      "Existing OpenClaw installation detected. Consider using 'openclaw nemoclaw migrate' instead.",
     );
     logger.info(
       "Use --force to proceed with a fresh launch (existing config will not be migrated).",
@@ -120,8 +120,8 @@ export async function cliLaunch(opts: LaunchOptions): Promise<void> {
   logger.info(`Sandbox: ${pluginConfig.sandboxName}`);
   logger.info("");
   logger.info("Next steps:");
-  logger.info("  openclaw openshell connect    # Enter the sandbox");
-  logger.info("  openclaw openshell status     # Check health");
+  logger.info("  openclaw nemoclaw connect    # Enter the sandbox");
+  logger.info("  openclaw nemoclaw status     # Check health");
   logger.info("  openshell term               # Monitor network egress");
 }
 

@@ -1,4 +1,4 @@
-# Lightweight test sandbox for OpenShell Plugin E2E testing
+# Lightweight test sandbox for NemoClaw E2E testing
 # Simulates the OpenClaw-in-OpenShell environment without requiring
 # the full NVIDIA base image or openshell CLI
 
@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Create sandbox user (matches OpenShell convention)
 RUN groupadd -r sandbox && useradd -r -g sandbox -d /sandbox -s /bin/bash sandbox \
-    && mkdir -p /sandbox/.openclaw /sandbox/.openshell-plugin \
+    && mkdir -p /sandbox/.openclaw /sandbox/.nemoclaw \
     && chown -R sandbox:sandbox /sandbox
 
 # Install OpenClaw CLI
@@ -23,16 +23,16 @@ RUN npm install -g openclaw@2026.3.11
 RUN pip3 install --break-system-packages pyyaml
 
 # Copy our plugin and blueprint into the sandbox
-COPY openshell-plugin/ /opt/openshell-plugin/
-COPY openshell-blueprint/ /opt/openshell-blueprint/
+COPY nemoclaw/ /opt/nemoclaw/
+COPY nemoclaw-blueprint/ /opt/nemoclaw-blueprint/
 
 # Build the TS plugin inside the container
-WORKDIR /opt/openshell-plugin
+WORKDIR /opt/nemoclaw
 RUN npm install && npx tsc
 
 # Set up blueprint for local resolution
-RUN mkdir -p /sandbox/.openshell-plugin/blueprints/0.1.0 \
-    && cp -r /opt/openshell-blueprint/* /sandbox/.openshell-plugin/blueprints/0.1.0/
+RUN mkdir -p /sandbox/.nemoclaw/blueprints/0.1.0 \
+    && cp -r /opt/nemoclaw-blueprint/* /sandbox/.nemoclaw/blueprints/0.1.0/
 
 WORKDIR /sandbox
 USER sandbox
