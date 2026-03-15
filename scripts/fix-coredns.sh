@@ -5,9 +5,12 @@
 # Fix CoreDNS on local OpenShell gateways running under Colima.
 #
 # Problem: k3s CoreDNS forwards to /etc/resolv.conf which inside the
-# CoreDNS pod resolves to an unreachable upstream (e.g., 8.8.4.4).
-# The cluster node CAN resolve via Colima's gateway (192.168.5.1)
-# but pods can't reach it by default.
+# CoreDNS pod resolves to 127.0.0.11 (Docker's embedded DNS). That
+# address is NOT reachable from k3s pods, causing DNS to fail and
+# CoreDNS to CrashLoop.
+#
+# Fix: forward CoreDNS to the container's default gateway IP, which
+# is reachable from pods and routes DNS through Docker to the host.
 #
 # Run this after `openshell gateway start` on Colima setups.
 #
@@ -26,16 +29,25 @@ if [ -z "$CLUSTER" ]; then
   exit 1
 fi
 
-# Get the Colima DNS gateway IP
-COLIMA_DNS=$(docker exec "$CLUSTER" cat /etc/resolv.conf | grep nameserver | head -1 | awk '{print $2}')
-if [ -z "$COLIMA_DNS" ]; then
-  echo "ERROR: Could not determine Colima DNS IP."
+# Get the container's default gateway IP — this is reachable from k3s pods
+# and routes through Docker to the host's DNS. Do NOT use /etc/resolv.conf
+# which has 127.0.0.11 (Docker embedded DNS, unreachable from pods).
+GATEWAY_IP=$(docker exec "$CLUSTER" ip route | grep default | awk '{print $3}')
+if [ -z "$GATEWAY_IP" ]; then
+  echo "ERROR: Could not determine container gateway IP."
   exit 1
 fi
 
-echo "Patching CoreDNS to forward to $COLIMA_DNS..."
+# Sanity check: don't use 127.x.x.x — it won't work from pods
+if [[ "$GATEWAY_IP" == 127.* ]]; then
+  echo "ERROR: Gateway IP is $GATEWAY_IP (loopback). Cannot use from k3s pods."
+  echo "Falling back to public DNS (8.8.8.8)."
+  GATEWAY_IP="8.8.8.8"
+fi
 
-docker exec "$CLUSTER" kubectl patch configmap coredns -n kube-system --type merge -p "{\"data\":{\"Corefile\":\".:53 {\\n    errors\\n    health\\n    ready\\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\\n      pods insecure\\n      fallthrough in-addr.arpa ip6.arpa\\n    }\\n    hosts /etc/coredns/NodeHosts {\\n      ttl 60\\n      reload 15s\\n      fallthrough\\n    }\\n    prometheus :9153\\n    cache 30\\n    loop\\n    reload\\n    loadbalance\\n    forward . $COLIMA_DNS\\n}\\n\"}}" > /dev/null
+echo "Patching CoreDNS to forward to $GATEWAY_IP..."
+
+docker exec "$CLUSTER" kubectl patch configmap coredns -n kube-system --type merge -p "{\"data\":{\"Corefile\":\".:53 {\\n    errors\\n    health\\n    ready\\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\\n      pods insecure\\n      fallthrough in-addr.arpa ip6.arpa\\n    }\\n    hosts /etc/coredns/NodeHosts {\\n      ttl 60\\n      reload 15s\\n      fallthrough\\n    }\\n    prometheus :9153\\n    cache 30\\n    loop\\n    reload\\n    loadbalance\\n    forward . $GATEWAY_IP\\n}\\n\"}}" > /dev/null
 
 docker exec "$CLUSTER" kubectl rollout restart deploy/coredns -n kube-system > /dev/null
 

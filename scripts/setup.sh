@@ -147,7 +147,17 @@ rm -f "$CREATE_LOG"
 SANDBOX_LINE=$(openshell sandbox list 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep "nemoclaw")
 if ! echo "$SANDBOX_LINE" | grep -q "Ready"; then
   SANDBOX_PHASE=$(echo "$SANDBOX_LINE" | awk '{print $NF}')
-  fail "Sandbox created but not Ready (phase: ${SANDBOX_PHASE:-unknown}). Check 'openshell sandbox get nemoclaw' and Docker logs."
+  echo ""
+  warn "Sandbox phase: ${SANDBOX_PHASE:-unknown}"
+  # Check for common failure modes
+  SB_DETAIL=$(openshell sandbox get nemoclaw 2>&1 || true)
+  if echo "$SB_DETAIL" | grep -qi "ImagePull\|ErrImagePull\|image.*not found"; then
+    warn "Image pull failure detected. The sandbox image was built inside the"
+    warn "gateway but k3s can't find it. This is a known openshell issue."
+    warn "Workaround: run 'openshell gateway destroy && openshell gateway start'"
+    warn "and re-run this script."
+  fi
+  fail "Sandbox created but not Ready (phase: ${SANDBOX_PHASE:-unknown}). Check 'openshell sandbox get nemoclaw'."
 fi
 
 # 6. Done
