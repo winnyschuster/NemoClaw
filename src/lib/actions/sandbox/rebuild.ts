@@ -264,6 +264,8 @@ async function stageMessagingManifestPlanForRebuild(
   return plan;
 }
 
+type RebuildSandboxEntry = registry.SandboxEntry & { agents?: unknown[] };
+
 const runMessagingOpenshell: MessagingOpenShellRunner = (args, options = {}) =>
   runOpenshell([...args], {
     env: options.env as NodeJS.ProcessEnv | undefined,
@@ -340,6 +342,35 @@ async function confirmSandboxRebuildIfNeeded(
   return true;
 }
 
+function checkRebuildGatewaySchemaPreflight(
+  sandboxName: string,
+  bail: (msg: string, code?: number) => never,
+): boolean {
+  const gatewayPreflightIssue = detectOpenShellStateRpcPreflightIssue();
+  if (gatewayPreflightIssue) {
+    printOpenShellStateRpcIssue(gatewayPreflightIssue, {
+      action: `rebuilding sandbox '${sandboxName}'`,
+      command: `${CLI_NAME} ${sandboxName} rebuild`,
+    });
+    bail("OpenShell gateway schema mismatch.");
+    return false;
+  }
+  return true;
+}
+
+function getRebuildSandboxEntryOrBail(
+  sandboxName: string,
+  bail: (msg: string, code?: number) => never,
+): RebuildSandboxEntry | null {
+  const sb = registry.getSandbox(sandboxName) as RebuildSandboxEntry | null;
+  if (!sb) {
+    console.error(`  Sandbox '${sandboxName}' not found in registry.`);
+    bail(`Sandbox '${sandboxName}' not found in registry.`);
+    return null;
+  }
+  return sb;
+}
+
 function isSingleAgentRebuildSupported(
   sb: registry.SandboxEntry & { agents?: unknown[] },
   bail: (msg: string, code?: number) => never,
@@ -409,12 +440,8 @@ export async function rebuildSandbox(
   // Active session detection — enrich the confirmation prompt if sessions are active
   const rebuildActiveSessionCount = countActiveSandboxSessionsForRebuild(sandboxName);
 
-  const sb = registry.getSandbox(sandboxName) as any;
-  if (!sb) {
-    console.error(`  Sandbox '${sandboxName}' not found in registry.`);
-    bail(`Sandbox '${sandboxName}' not found in registry.`);
-    return;
-  }
+  const sb = getRebuildSandboxEntryOrBail(sandboxName, bail);
+  if (!sb) return;
 
   // Multi-agent guard (temporary — until swarm lands)
   if (!isSingleAgentRebuildSupported(sb, bail)) return;
@@ -423,15 +450,7 @@ export async function rebuildSandbox(
   const agent = agentRuntime.getSessionAgent(sandboxName);
   const agentName = agentRuntime.getAgentDisplayName(agent);
 
-  const gatewayPreflightIssue = detectOpenShellStateRpcPreflightIssue();
-  if (gatewayPreflightIssue) {
-    printOpenShellStateRpcIssue(gatewayPreflightIssue, {
-      action: `rebuilding sandbox '${sandboxName}'`,
-      command: `${CLI_NAME} ${sandboxName} rebuild`,
-    });
-    bail("OpenShell gateway schema mismatch.");
-    return;
-  }
+  if (!checkRebuildGatewaySchemaPreflight(sandboxName, bail)) return;
 
   // Hydrate non-secret messaging config before the rebuild touches anything
   // destructive. The manifest plan in registry is the durable source; legacy
